@@ -10,41 +10,51 @@ import java.util.Random;
 
 public class GameShould {
 
-    private static final int TOTAL_NUMBER_OF_ROLLS = 98;
-    private static final int SEED = 100;
-    private static final int MAX = 50;
     private Game game;
-
-    private Random random = new Random(SEED);
     private List<String> goes = new ArrayList<String>();
+    Questions questions;
 
     @Before
     public void setUp(){
-        game = new Game();
-        game.add("Brad");
-        game.add("Sue");
-        game.add("Betty");
-        game.add("Paul");
-        game.add("Stefen");
+        questions = new Questions();
+        game = new Game(questions, "Brad", "Sue", "Betty", "Paul", "Stefen");
     }
 
     @Test
-    public void addPlayer() {
-        generateRandomRolls();
+    public void run_the_game_with_approvals() {
+        Random rand = new Random(50);
+        int i = 0;
+        do {
+            game.roll(rand.nextInt(5) + 1);
+            if (rand.nextBoolean()) {
+                game.wrongAnswer();
+            } else {
+                game.wasCorrectlyAnswered();
+            }
+            i++;
+            goes.add(game.toString());
+        } while (i < 100);
         Approvals.verify(getStringRepresentationFor(goes));
     }
 
-    private void generateRandomRolls() {
-        for (int i = 0; i < TOTAL_NUMBER_OF_ROLLS; i++) {
-            game.roll(random.nextInt(MAX));
-            if (random.nextBoolean())
-                game.wasCorrectlyAnswered();
-            else
-                game.wrongAnswer();
-            goes.add(game.toString());
-        }
-    }
+    @Test
+    public void play_until_someone_win_the_game() {
+        Random rand = new Random();
+        boolean notAWinner = false;
 
+        Questions questions = new Questions();
+        Game aGame = new Game(questions, "Chet", "Pat", "Sue");
+
+        do {
+            aGame.roll(rand.nextInt(5) + 1);
+
+            if (rand.nextInt(9) == 7) {
+                notAWinner = aGame.wrongAnswer();
+            } else {
+                notAWinner = aGame.wasCorrectlyAnswered();
+            }
+        } while (notAWinner);
+    }
     private String getStringRepresentationFor(List<String> plays) {
         StringBuilder builder = new StringBuilder();
         for (String play : plays) {
@@ -52,4 +62,5 @@ public class GameShould {
         }
         return builder.toString();
     }
+
 }
